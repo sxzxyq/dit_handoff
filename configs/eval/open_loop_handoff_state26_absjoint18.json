@@ -1,0 +1,8 @@
+{
+  "contract": "state26_absjoint18_v1",
+  "split": "val",
+  "max_samples": 128,
+  "metrics": ["mse", "mae", "per_dim_mae"],
+  "deterministic_preprocessing": true
+}
+

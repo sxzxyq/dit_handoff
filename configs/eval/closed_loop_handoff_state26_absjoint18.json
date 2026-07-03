@@ -1,0 +1,11 @@
+{
+  "contract": "state26_absjoint18_v1",
+  "task_id": "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-Joint-Pos-Visuomotor-v0",
+  "max_steps": 10,
+  "num_envs": 1,
+  "seed": 2000,
+  "record_video": false,
+  "deterministic_preprocessing": true,
+  "allow_n_action_steps_override": false
+}
+

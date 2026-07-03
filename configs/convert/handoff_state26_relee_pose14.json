@@ -1,0 +1,14 @@
+{
+  "contract": "state26_relee_pose14_v1",
+  "horizon": 50,
+  "n_obs_steps": 2,
+  "train_split": 0.9,
+  "action_dim": 14,
+  "gripper_sign": {
+    "open": 1.0,
+    "close": -1.0,
+    "opening_threshold": 0.02
+  },
+  "coordinate_frame": "per-arm robot root frame",
+  "rotation": "axis_angle_wxyz_quaternion_delta_target_times_source_inverse"
+}

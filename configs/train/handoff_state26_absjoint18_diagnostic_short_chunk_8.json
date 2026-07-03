@@ -1,0 +1,13 @@
+{
+  "profile": "diagnostic_short_chunk_8",
+  "policy_type": "multi_task_dit",
+  "n_obs_steps": 2,
+  "horizon_seconds": 1.0,
+  "n_action_steps": 8,
+  "objective": "diffusion",
+  "noise_scheduler_type": "DDPM",
+  "num_train_timesteps": 100,
+  "num_inference_steps": 10,
+  "purpose": "diagnostic only; not the formal baseline default"
+}
+

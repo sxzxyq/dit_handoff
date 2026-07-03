@@ -1,0 +1,9 @@
+{
+  "contract": "state26_relee_pose14_v1",
+  "task": "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-IK-Rel-Visuomotor-v0",
+  "max_steps": 2200,
+  "fps": 50.0,
+  "num_envs": 1,
+  "ik_action_scale": 0.5,
+  "save_video": true
+}

@@ -1,0 +1,32 @@
+{
+  "profile": "smoke_gpu_fit",
+  "policy_type": "multi_task_dit",
+  "n_obs_steps": 2,
+  "horizon_seconds": 1.0,
+  "n_action_seconds": 0.8,
+  "objective": "diffusion",
+  "noise_scheduler_type": "DDPM",
+  "num_train_timesteps": 20,
+  "num_inference_steps": 4,
+  "num_layers": 2,
+  "hidden_dim": 256,
+  "num_heads": 4,
+  "use_rope": true,
+  "image_crop_shape": [
+    224,
+    224
+  ],
+  "image_crop_is_random": true,
+  "separate_rgb_encoder_per_camera": false,
+  "optimizer_lr": 2e-05,
+  "vision_encoder_lr_multiplier": 0.1,
+  "physical_batch_size": 1,
+  "gradient_accumulation_steps": 1,
+  "steps": 2,
+  "smoke_steps": 2,
+  "save_freq": 1000,
+  "log_freq": 1,
+  "eval_freq": 1000,
+  "seed": 2000,
+  "purpose": "smoke only; verifies official LeRobot MultiTask DiT training entrypoint on a single 4090 and is not the formal baseline default"
+}

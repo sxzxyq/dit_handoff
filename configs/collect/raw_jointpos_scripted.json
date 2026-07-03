@@ -1,0 +1,20 @@
+{
+  "dataset_name": "handoff_jointpos_scripted_raw",
+  "task_id": "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-Joint-Pos-Visuomotor-v0",
+  "action_interface": "Joint-Pos absolute target 18D",
+  "expert": "dit_handoff.collect.experts:scripted_handoff_jointpos_action",
+  "episodes": 1,
+  "max_steps": 2600,
+  "num_envs": 1,
+  "seed": 2000,
+  "fps": 50.0,
+  "record_image_every": 1,
+  "camera_warmup_steps": 1,
+  "enable_randomization": false,
+  "randomization_profile": "none",
+  "randomization": {
+    "cube_pose": "disabled",
+    "camera_image_augmentation": "disabled",
+    "material_randomization": "not_implemented"
+  }
+}

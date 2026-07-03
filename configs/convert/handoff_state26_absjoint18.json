@@ -1,0 +1,12 @@
+{
+  "contract": "state26_absjoint18_v1",
+  "state_dim": 26,
+  "action_dim": 18,
+  "image_features": ["wrist_rgb", "observer_wrist_rgb", "global_rgb"],
+  "state_source": "raw pre_observation",
+  "action_source": "raw action.joint_target_18_commanded",
+  "train_split": 0.9,
+  "stats_source": "converted train split",
+  "allow_portable_fallback": true
+}
+
