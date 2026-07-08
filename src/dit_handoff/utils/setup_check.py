@@ -12,12 +12,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from dit_handoff.constants import JOINT_POS_TASK_ID
+from dit_handoff.constants import CONDA_ROOT, DATA_ROOT, ISAACLAB_ROOT, JOINT_POS_TASK_ID, WORKSPACE_ROOT
 from dit_handoff.env import register_tasks
 from dit_handoff.utils.io import read_json, write_json
 
-WORKSPACE_SRC = Path("/home/qsh/dit/src")
-ISAACLAB_SOURCE = Path("/home/qsh/IsaacLab/source")
+WORKSPACE_SRC = WORKSPACE_ROOT / "src"
+ISAACLAB_SOURCE = ISAACLAB_ROOT / "source"
 
 
 def _check_import(name: str) -> dict[str, Any]:
@@ -290,12 +290,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=("full", "lerobot", "isaaclab"), default="full")
     parser.add_argument("--env-name", default="dit_lerobot_main")
     parser.add_argument("--isaaclab-env-name", default="env_isaaclab")
-    parser.add_argument("--lerobot-python", default="/home/qsh/miniconda3/envs/dit_lerobot_main/bin/python")
-    parser.add_argument("--isaaclab-python", default="/home/qsh/miniconda3/envs/env_isaaclab/bin/python")
+    parser.add_argument("--lerobot-python", default=str(CONDA_ROOT / "envs/dit_lerobot_main/bin/python"))
+    parser.add_argument("--isaaclab-python", default=str(CONDA_ROOT / "envs/env_isaaclab/bin/python"))
     parser.add_argument("--headless-reset", action="store_true")
     parser.add_argument("--device", default="cuda:0")
-    parser.add_argument("--output", type=Path, default=Path("/data/shared_folder/datasets/dit/reports/setup_check.json"))
+    parser.add_argument("--output", type=Path, default=DATA_ROOT / "reports/setup_check.json")
     args = parser.parse_args(argv)
+    if args.mode == "isaaclab" and args.env_name == parser.get_default("env_name"):
+        args.env_name = args.isaaclab_env_name
 
     if args.mode == "lerobot":
         results = run_lerobot_checks(args.env_name)

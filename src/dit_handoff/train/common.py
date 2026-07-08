@@ -8,13 +8,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from dit_handoff.constants import CACHE_ROOT
+from dit_handoff.constants import CACHE_ROOT, WORKSPACE_ROOT
 from dit_handoff.utils.io import ensure_dir, read_json
 
 
 def _load_profile(path: Path | None) -> dict[str, Any]:
     if path is None:
-        path = Path("/home/qsh/dit/configs/train/handoff_state26_absjoint18_official_time_profile.json")
+        path = WORKSPACE_ROOT / "configs/train/handoff_state26_absjoint18_official_time_profile.json"
     return read_json(path)
 
 

@@ -172,6 +172,7 @@ def build_lerobot_train_command(
         f"--policy.hidden_dim={config['model']['hidden_dim']}",
         f"--policy.num_heads={config['model']['num_heads']}",
         f"--policy.use_rope={str(config['model']['use_rope']).lower()}",
+        f"--policy.use_separate_rgb_encoder_per_camera={str(config['model']['separate_rgb_encoder_per_camera']).lower()}",
         f"--policy.optimizer_lr={config['learning_rate']}",
         f"--policy.vision_encoder_lr_multiplier={config['vision_encoder_lr_multiplier']}",
         f"--policy.image_crop_shape={config['transform_config']['image_crop_shape']}",
@@ -275,4 +276,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

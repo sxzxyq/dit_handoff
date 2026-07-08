@@ -1,11 +1,10 @@
 {
   "default_env_name": "dit_lerobot_main",
   "python": "3.12",
-  "install_command": "pip install "lerobot[training,multi-task-dit] @ git+https://github.com/huggingface/lerobot.git"",
+  "install_command": "pip install \"lerobot[training,multi-task-dit] @ git+https://github.com/huggingface/lerobot.git\"",
   "notes": [
     "Training uses the LeRobot conda environment.",
     "IsaacLab collect and closed-loop eval may need IsaacLab's own launcher/python.",
-    "All datasets, checkpoints, videos, reports, and caches remain under /data/shared_folder/datasets/dit."
+    "By default, datasets, checkpoints, videos, reports, and caches stay under /home/ubuntu/Workspace/dit/datasets/dit; override with DIT_DATA_ROOT when needed."
   ]
 }
-

@@ -213,6 +213,7 @@ class CubePickPlaceRedTargetFrankaIKRelVisuomotorEnvCfg(FrankaCubeLiftEnvCfg):
         self.scene.wrist_cam = CameraCfg(
             prim_path="{ENV_REGEX_NS}/Robot/panda_hand/wrist_cam",
             update_period=0.0,
+            update_latest_camera_pose=True,
             height=256,
             width=256,
             data_types=["rgb"],
@@ -231,6 +232,7 @@ class CubePickPlaceRedTargetFrankaIKRelVisuomotorEnvCfg(FrankaCubeLiftEnvCfg):
         self.scene.observer_wrist_cam = CameraCfg(
             prim_path="{ENV_REGEX_NS}/ObserverRobot/panda_hand/observer_wrist_cam",
             update_period=0.0,
+            update_latest_camera_pose=True,
             height=256,
             width=256,
             data_types=["rgb"],
@@ -249,6 +251,7 @@ class CubePickPlaceRedTargetFrankaIKRelVisuomotorEnvCfg(FrankaCubeLiftEnvCfg):
         self.scene.global_cam = CameraCfg(
             prim_path="{ENV_REGEX_NS}/GlobalCamera",
             update_period=0.0,
+            update_latest_camera_pose=True,
             height=256,
             width=256,
             data_types=["rgb"],
@@ -319,4 +322,3 @@ class CubePickPlaceRedTargetFrankaIKRelVisuomotorEnvCfg(FrankaCubeLiftEnvCfg):
             func=handoff_mdp.object_stably_placed_on_target,
             params={**placement_params, "stable_steps": 10},
         )
-

@@ -111,7 +111,7 @@ def raw_dataset_manifest(
         "gripper_opening_definition": GRIPPER_OPENING_DEFINITION,
         "forbidden_raw_derived_fields": list(FORBIDDEN_RAW_DERIVED_FIELDS),
         "train_val_split_policy": "episode_split_only",
-        "large_file_policy": "All raw images, datasets, checkpoints, videos, reports, and caches stay under /data/shared_folder/datasets/dit.",
+        "large_file_policy": f"All raw images, datasets, checkpoints, videos, reports, and caches stay under {DATA_ROOT}.",
     }
     if extra:
         manifest.update(extra)
@@ -146,4 +146,3 @@ def episode_meta(
 
 def env_var_snapshot(names: tuple[str, ...]) -> dict[str, str]:
     return {name: os.environ[name] for name in names if name in os.environ}
-

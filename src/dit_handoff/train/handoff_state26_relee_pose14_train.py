@@ -19,6 +19,7 @@ from dit_handoff.constants import (
     POSE14_ACTION_DIM,
     RUNS_ROOT,
     STATE_DIM,
+    WORKSPACE_ROOT,
 )
 from dit_handoff.train.common import _build_training_subprocess_env, _load_profile, _resolve_env_executable, _round_steps
 from dit_handoff.utils.io import ensure_dir, read_json, write_json
@@ -149,6 +150,7 @@ def _official_train_args(config: dict[str, Any], *, device: str, wandb: bool) ->
         f"--policy.hidden_dim={config['model']['hidden_dim']}",
         f"--policy.num_heads={config['model']['num_heads']}",
         f"--policy.use_rope={str(config['model']['use_rope']).lower()}",
+        f"--policy.use_separate_rgb_encoder_per_camera={str(config['model']['separate_rgb_encoder_per_camera']).lower()}",
         f"--policy.optimizer_lr={config['learning_rate']}",
         f"--policy.vision_encoder_lr_multiplier={config['vision_encoder_lr_multiplier']}",
         f"--policy.image_crop_shape={config['transform_config']['image_crop_shape']}",
@@ -201,7 +203,8 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     profile = _load_profile(args.profile)
     config = build_training_config(dataset_dir, profile, run_name=args.run_name, smoke=args.smoke)
     env, cache_env = _build_training_subprocess_env()
-    env["PYTHONPATH"] = "/home/qsh/dit/src" + ((":" + env["PYTHONPATH"]) if env.get("PYTHONPATH") else "")
+    src_path = str(WORKSPACE_ROOT / "src")
+    env["PYTHONPATH"] = src_path + ((":" + env["PYTHONPATH"]) if env.get("PYTHONPATH") else "")
     config["cache_env"] = cache_env
     config["num_processes"] = int(args.num_processes)
     config["gpu_ids"] = args.gpu_ids
@@ -232,7 +235,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Train state26 -> anchored relative EE pose14 MultiTask DiT.")
     parser.add_argument("dataset_dir", type=Path)
-    parser.add_argument("--profile", type=Path, default=Path("/home/qsh/dit/configs/train/handoff_state26_relee_pose14_2gpu_bs16_accum4_50k.json"))
+    parser.add_argument(
+        "--profile",
+        type=Path,
+        default=WORKSPACE_ROOT / "configs/train/handoff_state26_relee_pose14_2gpu_bs16_accum4_50k.json",
+    )
     parser.add_argument("--run-name", default="handoff_state26_relee_pose14_mtdp")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--num-processes", type=int, default=1)

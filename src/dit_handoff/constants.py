@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-WORKSPACE_ROOT = Path("/home/qsh/dit")
-DATA_ROOT = Path("/data/shared_folder/datasets/dit")
+WORKSPACE_ROOT = Path(os.environ.get("DIT_WORKSPACE_ROOT", "/home/ubuntu/Workspace/dit")).expanduser()
+DATA_ROOT = Path(os.environ.get("DIT_DATA_ROOT", str(WORKSPACE_ROOT / "datasets" / "dit"))).expanduser()
+CONDA_ROOT = Path(os.environ.get("DIT_CONDA_ROOT", "/home/ubuntu/miniconda3")).expanduser()
+ISAACLAB_ROOT = Path(os.environ.get("DIT_ISAACLAB_ROOT", "/home/ubuntu/Workspace/IsaacLab")).expanduser()
 
 RAW_ROOT = DATA_ROOT / "raw"
 LEROBOT_ROOT = DATA_ROOT / "lerobot"
@@ -120,4 +123,3 @@ FORBIDDEN_RAW_DERIVED_FIELDS = (
     "red_stage",
     "yellow_stage",
 )
-

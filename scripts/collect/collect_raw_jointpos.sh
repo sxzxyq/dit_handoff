@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CACHE_ROOT="${DIT_CACHE_ROOT:-/data/shared_folder/datasets/dit/cache}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+DATA_ROOT="${DIT_DATA_ROOT:-${REPO_ROOT}/datasets/dit}"
+CACHE_ROOT="${DIT_CACHE_ROOT:-${DATA_ROOT}/cache}"
 mkdir -p "${CACHE_ROOT}/huggingface/hub"   "${CACHE_ROOT}/huggingface/transformers"   "${CACHE_ROOT}/torch"   "${CACHE_ROOT}/xdg"   "${CACHE_ROOT}/wandb"   "${CACHE_ROOT}/wandb_config"   "${CACHE_ROOT}/pip"   "${CACHE_ROOT}/conda_pkgs"
 export HF_HOME="${HF_HOME:-${CACHE_ROOT}/huggingface}"
 export HF_HUB_CACHE="${HF_HUB_CACHE:-${CACHE_ROOT}/huggingface/hub}"
@@ -15,10 +18,14 @@ export PIP_CACHE_DIR="${PIP_CACHE_DIR:-${CACHE_ROOT}/pip}"
 export CONDA_PKGS_DIRS="${CONDA_PKGS_DIRS:-${CACHE_ROOT}/conda_pkgs}"
 
 
-ISAACLAB_PYTHON="${DIT_ISAACLAB_PYTHON:-/home/qsh/miniconda3/envs/env_isaaclab/bin/python}"
-export PYTHONPATH="/home/qsh/dit/src:/home/qsh/IsaacLab/source:${PYTHONPATH:-}"
+CONDA_ROOT="${DIT_CONDA_ROOT:-/home/ubuntu/miniconda3}"
+ISAACLAB_ROOT="${DIT_ISAACLAB_ROOT:-/home/ubuntu/Workspace/IsaacLab}"
+ISAACLAB_PYTHON="${DIT_ISAACLAB_PYTHON:-${CONDA_ROOT}/envs/env_isaaclab/bin/python}"
+export DIT_WORKSPACE_ROOT="${DIT_WORKSPACE_ROOT:-${REPO_ROOT}}"
+export DIT_DATA_ROOT="${DATA_ROOT}"
+export DIT_ISAACLAB_ROOT="${ISAACLAB_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src:${ISAACLAB_ROOT}/source:${PYTHONPATH:-}"
 "${ISAACLAB_PYTHON}" -m dit_handoff.collect.raw_collector \
-  --config /home/qsh/dit/configs/collect/raw_jointpos_default.json \
+  --config "${REPO_ROOT}/configs/collect/raw_jointpos_default.json" \
   --enable_cameras \
   "$@"
-

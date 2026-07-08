@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from dit_handoff.collect.raw_collector import _observation_snapshot, _policy_obs, _to_serializable
-from dit_handoff.constants import CAMERA_OBS_FEATURES, EVAL_ROOT, IK_TASK_ID, LANGUAGE_INSTRUCTION, POSE14_ACTION_DIM
+from dit_handoff.constants import CAMERA_OBS_FEATURES, EVAL_ROOT, IK_TASK_ID, LANGUAGE_INSTRUCTION, POSE14_ACTION_DIM, WORKSPACE_ROOT
 from dit_handoff.env import register_tasks
 from dit_handoff.eval.adapters import pose14_anchor_from_live_snapshot, relee_pose14_to_ik_env_action, state26_from_live_snapshot
 from dit_handoff.utils.io import ensure_dir, read_json, write_json
@@ -126,7 +126,8 @@ class _PolicyWorkerClient:
         self.input_dir = ensure_dir(out_dir / "policy_worker_inputs")
         self.request_index = 0
         env = os.environ.copy()
-        env["PYTHONPATH"] = "/home/qsh/dit/src" + ((":" + env["PYTHONPATH"]) if env.get("PYTHONPATH") else "")
+        src_path = str(WORKSPACE_ROOT / "src")
+        env["PYTHONPATH"] = src_path + ((":" + env["PYTHONPATH"]) if env.get("PYTHONPATH") else "")
         self.proc = subprocess.Popen(
             [
                 policy_python,
@@ -419,4 +420,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

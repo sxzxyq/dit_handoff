@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CACHE_ROOT="${DIT_CACHE_ROOT:-/data/shared_folder/datasets/dit/cache}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+DATA_ROOT="${DIT_DATA_ROOT:-${REPO_ROOT}/datasets/dit}"
+CACHE_ROOT="${DIT_CACHE_ROOT:-${DATA_ROOT}/cache}"
 mkdir -p "${CACHE_ROOT}/huggingface/hub"   "${CACHE_ROOT}/huggingface/transformers"   "${CACHE_ROOT}/torch"   "${CACHE_ROOT}/xdg"   "${CACHE_ROOT}/wandb"   "${CACHE_ROOT}/wandb_config"   "${CACHE_ROOT}/pip"   "${CACHE_ROOT}/conda_pkgs"
 export HF_HOME="${HF_HOME:-${CACHE_ROOT}/huggingface}"
 export HF_HUB_CACHE="${HF_HUB_CACHE:-${CACHE_ROOT}/huggingface/hub}"
@@ -16,8 +19,10 @@ export CONDA_PKGS_DIRS="${CONDA_PKGS_DIRS:-${CACHE_ROOT}/conda_pkgs}"
 
 
 LEROBOT_ENV="${DIT_LEROBOT_ENV:-dit_lerobot_main}"
-LEROBOT_PYTHON="${DIT_LEROBOT_PYTHON:-/home/qsh/miniconda3/envs/${LEROBOT_ENV}/bin/python}"
+CONDA_ROOT="${DIT_CONDA_ROOT:-/home/ubuntu/miniconda3}"
+LEROBOT_PYTHON="${DIT_LEROBOT_PYTHON:-${CONDA_ROOT}/envs/${LEROBOT_ENV}/bin/python}"
 
-export PYTHONPATH="/home/qsh/dit/src:${PYTHONPATH:-}"
+export DIT_WORKSPACE_ROOT="${DIT_WORKSPACE_ROOT:-${REPO_ROOT}}"
+export DIT_DATA_ROOT="${DATA_ROOT}"
+export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
 exec "${LEROBOT_PYTHON}" -m dit_handoff.train.handoff_state26_absjoint18_train "$@"
-

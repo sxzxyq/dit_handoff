@@ -20,6 +20,7 @@ from dit_handoff.constants import (
     ACTION_DIM,
     ACTION_INTERFACE,
     CAMERA_OBS_FEATURES,
+    CAMERA_SENSOR_NAMES,
     DATA_ROOT,
     DEFAULT_FPS,
     JOINT_POS_TASK_ID,
@@ -308,6 +309,31 @@ def _warmup_cameras(env: Any, obs: Any, warmup_steps: int, device: Any) -> Any:
     return obs
 
 
+def _refresh_camera_observations(env: Any, obs: Any) -> Any:
+    """Force attached camera sensors to refresh their pose/RGB buffers and recompute observations."""
+    scene = getattr(env.unwrapped, "scene", None)
+    sensors = getattr(scene, "sensors", {}) if scene is not None else {}
+    for name in CAMERA_SENSOR_NAMES:
+        sensor = sensors.get(name)
+        if sensor is None:
+            continue
+        sensor.reset()
+        sensor.update(0.0, force_recompute=True)
+        _ = sensor.data
+    observation_manager = getattr(env.unwrapped, "observation_manager", None)
+    if observation_manager is None:
+        return obs
+    obs = observation_manager.compute(update_history=True)
+    if hasattr(env.unwrapped, "obs_buf"):
+        env.unwrapped.obs_buf = obs
+    return obs
+
+
+def _reset_camera_observations(env: Any, obs: Any, warmup_steps: int, device: Any) -> Any:
+    obs = _warmup_cameras(env, obs, warmup_steps, device)
+    return _refresh_camera_observations(env, obs)
+
+
 def collect(args: argparse.Namespace) -> Path:
     from isaaclab.app import AppLauncher
 
@@ -372,7 +398,7 @@ def collect(args: argparse.Namespace) -> Path:
             seed = args.seed + attempt_id
             obs_out = env.reset(seed=seed)
             obs = obs_out[0] if isinstance(obs_out, tuple) else obs_out
-            obs = _warmup_cameras(env, obs, args.camera_warmup_steps, device)
+            obs = _reset_camera_observations(env, obs, args.camera_warmup_steps, device)
             meta = episode_meta(
                 dataset_name=args.dataset_name,
                 episode_id=episode_id,
@@ -552,8 +578,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    if not str(DATA_ROOT).startswith("/data/shared_folder/datasets/dit"):
-        raise RuntimeError(f"DATA_ROOT must stay fixed under /data/shared_folder/datasets/dit, got {DATA_ROOT}")
     dataset_dir = collect(args)
     print(dataset_dir)
     return 0
@@ -561,4 +585,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
