@@ -19,13 +19,19 @@ CACHE_ROOT = DATA_ROOT / "cache"
 RAW_SCHEMA_VERSION = "dit_raw_handoff_v1"
 LEROBOT_CONTRACT_VERSION = "state26_absjoint18_v1"
 LEROBOT_RELEE_POSE14_CONTRACT_VERSION = "state26_relee_pose14_v1"
+BAR_HANDOFF_LEROBOT_CONTRACT_VERSION = "bar_handoff_state26_absjoint18_v1"
 
 IK_TASK_ID = "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-IK-Rel-Visuomotor-v0"
 JOINT_POS_TASK_ID = "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-Joint-Pos-Visuomotor-v0"
+BAR_HANDOFF_JOINT_POS_TASK_ID = "Isaac-Bar-Handoff-Dual-Franka-Joint-Pos-Visuomotor-v0"
 
 LANGUAGE_INSTRUCTION = (
     "First place the blue cube on the yellow middle handoff area, "
     "then place it on the red target area."
+)
+BAR_HANDOFF_LANGUAGE_INSTRUCTION = (
+    "The right arm picks up one end of the blue rectangular bar, "
+    "hands it to the left arm in the air, and the left arm places it on the red target area."
 )
 
 CAMERA_OBS_FEATURES = ("wrist_rgb", "observer_wrist_rgb", "global_rgb")

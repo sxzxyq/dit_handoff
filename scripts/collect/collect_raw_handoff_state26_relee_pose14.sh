@@ -16,4 +16,4 @@ export CONDA_PKGS_DIRS="${CONDA_PKGS_DIRS:-${CACHE_ROOT}/conda_pkgs}"
 
 ISAACLAB_PYTHON="${DIT_ISAACLAB_PYTHON:-/home/qsh/miniconda3/envs/env_isaaclab/bin/python}"
 export PYTHONPATH="/home/qsh/dit/src:/home/qsh/IsaacLab/source:${PYTHONPATH:-}"
-"${ISAACLAB_PYTHON}" -m dit_handoff.eval.closed_loop_handoff_state26_relee_pose14 "$@"
+"${ISAACLAB_PYTHON}" -m dit_handoff.collect.raw_collector_relee_pose14   --config /home/qsh/dit/configs/collect/raw_handoff_state26_relee_pose14_default.json   --enable_cameras   "$@"

@@ -14,6 +14,8 @@ export WANDB_CONFIG_DIR="${WANDB_CONFIG_DIR:-${CACHE_ROOT}/wandb_config}"
 export PIP_CACHE_DIR="${PIP_CACHE_DIR:-${CACHE_ROOT}/pip}"
 export CONDA_PKGS_DIRS="${CONDA_PKGS_DIRS:-${CACHE_ROOT}/conda_pkgs}"
 
+
 ISAACLAB_PYTHON="${DIT_ISAACLAB_PYTHON:-/home/qsh/miniconda3/envs/env_isaaclab/bin/python}"
 export PYTHONPATH="/home/qsh/dit/src:/home/qsh/IsaacLab/source:${PYTHONPATH:-}"
-"${ISAACLAB_PYTHON}" -m dit_handoff.eval.closed_loop_handoff_state26_relee_pose14 "$@"
+"${ISAACLAB_PYTHON}" -m dit_handoff.eval.closed_loop_bar_handoff_state26_absjoint18 "$@"
+

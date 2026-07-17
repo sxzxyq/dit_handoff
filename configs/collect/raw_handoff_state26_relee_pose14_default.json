@@ -1,0 +1,21 @@
+{
+  "dataset_name": "handoff_relee_pose14_raw_smoke",
+  "task_id": "Isaac-Cube-Handoff-Yellow-Red-Dual-Franka-IK-Rel-Visuomotor-v0",
+  "action_interface": "Dual Franka IK relative EE pose 14D",
+  "expert": "dit_handoff.collect.experts:scripted_handoff_relee_pose14_action",
+  "episodes": 1,
+  "max_steps": 10,
+  "num_envs": 1,
+  "seed": 2000,
+  "fps": 50.0,
+  "record_image_every": 1,
+  "enable_randomization": false,
+  "randomization_profile": "none",
+  "randomization": {
+    "cube_pose": "disabled",
+    "camera_image_augmentation": "disabled",
+    "material_randomization": "not_implemented"
+  },
+  "camera_warmup_steps": 1,
+  "ik_action_scale": 0.5
+}

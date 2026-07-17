@@ -341,6 +341,91 @@ def _scripted_state(env: Any, context: dict[str, Any]) -> tuple[dict[str, Any], 
     return state, cfg
 
 
+def _scripted_pose14_state(env: Any, context: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    cfg = dict(SCRIPTED_DEFAULTS)
+    cfg.update(context.get("scripted_pose14_cfg", {}))
+    state = context.get("_scripted_pose14_state")
+    if state is None:
+        state = {
+            "phase_idx": 0,
+            "phase_steps": 0,
+            "last_step_index": None,
+            "last_distance": 1.0e9,
+            "yellow_stable_steps": 0,
+            "red_stable_steps": 0,
+            "yellow_achieved": False,
+            "red_achieved": False,
+            "park_positions": _park_positions(env, cfg),
+            "done": False,
+            "expert_success": False,
+        }
+        context["_scripted_pose14_state"] = state
+    return state, cfg
+
+
+def _pose14_gripper_sign_for_phase(phase_name: str) -> float:
+    return 1.0 if _gripper_target_for_phase(phase_name) >= OPEN_GRIPPER * 0.5 else -1.0
+
+
+def _arm_pose14_delta_action(env: Any, arm_name: str, desired_pos_w: Any, gripper_sign: float, cfg: dict[str, Any]):
+    import torch
+
+    tcp_pos = _tcp_pos_w(env, arm_name)
+    delta_w = desired_pos_w - tcp_pos
+    distance = torch.linalg.vector_norm(delta_w, dim=1)
+    scale = torch.clamp(float(cfg["max_delta"]) / (distance + 1.0e-8), max=1.0).unsqueeze(-1)
+    physical_delta = delta_w * scale
+    ik_action_scale = float(cfg.get("ik_action_scale", 0.5))
+    if ik_action_scale <= 0.0:
+        raise ValueError("ik_action_scale must be positive")
+    action = torch.zeros((env.unwrapped.num_envs, 7), device=env.unwrapped.device, dtype=tcp_pos.dtype)
+    action[:, :3] = physical_delta / ik_action_scale
+    action[:, 6] = float(gripper_sign)
+    return action, distance
+
+
+def scripted_handoff_relee_pose14_action(env: Any, obs: Any, step_index: int, episode_id: int, context: dict[str, Any]):
+    """Scripted yellow-to-red handoff expert for 14D IK-relative EE pose actions.
+
+    The returned action is the raw env command. The arm delta components are divided by
+    the IK action scale so that the controller receives the intended physical TCP delta.
+    """
+    import torch
+
+    state, cfg = _scripted_pose14_state(env, context)
+    if state["last_step_index"] is not None and step_index > int(state["last_step_index"]):
+        _advance_state(env, state, cfg)
+
+    action = torch.zeros((env.unwrapped.num_envs, 14), device=env.unwrapped.device)
+    action[:, 6] = 1.0
+    action[:, 13] = 1.0
+    if state.get("done"):
+        context["expert_done"] = True
+        context["expert_success"] = bool(state.get("expert_success", False))
+        return action
+
+    phase_name = PHASES[state["phase_idx"]]
+    active_arm = _active_arm_for_phase(phase_name)
+    desired_pos = _desired_pos_for_phase(env, phase_name, cfg, state["park_positions"])
+    distance = torch.zeros(env.unwrapped.num_envs, device=env.unwrapped.device)
+    if active_arm is not None and desired_pos is not None:
+        arm_action, distance = _arm_pose14_delta_action(
+            env, active_arm, desired_pos, _pose14_gripper_sign_for_phase(phase_name), cfg
+        )
+        if active_arm == LEFT_ARM:
+            action[:, 0:7] = arm_action
+            action[:, 13] = 1.0
+        else:
+            action[:, 7:14] = arm_action
+            action[:, 6] = 1.0
+
+    state["last_distance"] = float(distance[0].detach().cpu().item()) if distance.numel() else 0.0
+    state["last_step_index"] = int(step_index)
+    context["expert_done"] = False
+    context["expert_success"] = False
+    return action.detach().clone()
+
+
 def scripted_handoff_jointpos_action(env: Any, obs: Any, step_index: int, episode_id: int, context: dict[str, Any]):
     """Scripted yellow-to-red handoff expert that commands 18D absolute Joint-Pos targets.
 

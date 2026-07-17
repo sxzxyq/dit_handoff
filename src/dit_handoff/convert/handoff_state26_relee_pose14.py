@@ -27,7 +27,7 @@ from dit_handoff.constants import (
 from dit_handoff.convert.handoff_state26_absjoint18 import _as_vector, _episode_dirs, _feature_stats, _split_episodes, state26_from_raw_step
 from dit_handoff.data.raw_validator import validate_raw_dataset
 from dit_handoff.utils.io import ensure_dir, iter_jsonl, read_json, write_json
-from dit_handoff.utils.pose_math import pose_delta_axis_angle, pose_world_to_root
+from dit_handoff.utils.pose_math import apply_pose_delta_axis_angle, pose_delta_axis_angle, pose_world_to_root
 
 
 def gripper_opening_to_sign(opening: Any, threshold: float = GRIPPER_OPENING_SIGN_THRESHOLD) -> float:
@@ -78,8 +78,38 @@ def pose14_between(
     return action
 
 
+def commanded_pose14_from_raw_step(row: dict[str, Any]) -> list[float] | None:
+    action = row.get("action", {})
+    if action.get("pose14_delta_commanded_source") != "commanded_expert_action":
+        return None
+    return _as_vector(action.get("pose14_delta_commanded"), POSE14_ACTION_DIM, "pose14_delta_commanded")
+
+
+def _uses_commanded_pose14(row: dict[str, Any]) -> bool:
+    return commanded_pose14_from_raw_step(row) is not None
+
+
 def action14_from_raw_step(row: dict[str, Any]) -> list[float]:
+    commanded = commanded_pose14_from_raw_step(row)
+    if commanded is not None:
+        return commanded
     return pose14_between(row["pre_observation"], row["post_observation"], row)
+
+
+def pose14_between_anchor_and_commanded_target(anchor_snapshot: dict[str, Any], target_row: dict[str, Any]) -> list[float]:
+    commanded = commanded_pose14_from_raw_step(target_row)
+    if commanded is None:
+        return pose14_between(anchor_snapshot, target_row["post_observation"], target_row)
+    action: list[float] = []
+    for side, start in (("left", 0), ("right", 7)):
+        anchor_pos, anchor_quat = arm_tcp_pose_root(anchor_snapshot, side)
+        source_pos, source_quat = arm_tcp_pose_root(target_row["pre_observation"], side)
+        target_pos, target_quat = apply_pose_delta_axis_angle(source_pos, source_quat, commanded[start : start + 6])
+        action.extend(pose_delta_axis_angle(anchor_pos, anchor_quat, target_pos, target_quat))
+        action.append(float(commanded[start + 6]))
+    if len(action) != POSE14_ACTION_DIM:
+        raise ValueError(f"pose14 anchored action built {len(action)} values")
+    return action
 
 
 def _np_action_stats(values: Any) -> dict[str, list[float]]:
@@ -131,7 +161,7 @@ def _write_action_chunk_sidecar(
                 if target_index < local_index or target_index < 0 or target_index >= len(rows):
                     continue
                 target_row = rows[target_index]
-                action = pose14_between(anchor, target_row["post_observation"], target_row)
+                action = pose14_between_anchor_and_commanded_target(anchor, target_row)
                 actions[global_index, slot] = np.asarray(action, dtype=np.float32)
                 is_pad[global_index, slot] = False
                 valid_actions.append(action)
@@ -240,6 +270,32 @@ def _try_official_lerobot(raw_dir: Path, output_dir: Path, episodes: list[Path],
         return False, f"official LeRobotDataset writer failed: {exc}"
 
 
+def _validate_commanded_pose14_raw(raw_dir: Path) -> None:
+    manifest = read_json(raw_dir / "dataset_manifest.json")
+    if manifest.get("action_interface") != RELEE_POSE14_ACTION_INTERFACE:
+        raise ValueError(f"raw manifest action_interface is not pose14: {manifest.get('action_interface')!r}")
+    if int(manifest.get("action_dim", -1)) != POSE14_ACTION_DIM:
+        raise ValueError(f"raw manifest action_dim must be {POSE14_ACTION_DIM}")
+    episodes = _episode_dirs(raw_dir)
+    if not episodes:
+        raise ValueError(f"no raw episodes found under {raw_dir / 'episodes'}")
+    for ep_dir in episodes:
+        rows = list(iter_jsonl(ep_dir / "steps.jsonl"))
+        if not rows:
+            raise ValueError(f"episode has no steps: {ep_dir}")
+        for row_i, row in enumerate(rows):
+            action = row.get("action", {})
+            if action.get("pose14_delta_commanded_source") != "commanded_expert_action":
+                raise ValueError(f"{ep_dir.name}:{row_i} missing commanded pose14 source")
+            _as_vector(action.get("raw_env_action"), POSE14_ACTION_DIM, "raw_env_action")
+            _as_vector(action.get("pose14_delta_commanded"), POSE14_ACTION_DIM, "pose14_delta_commanded")
+            images = row.get("pre_observation", {}).get("images", {})
+            for camera in CAMERA_OBS_FEATURES:
+                rel = images.get(camera)
+                if not rel or not (ep_dir / rel).exists():
+                    raise ValueError(f"{ep_dir.name}:{row_i} missing image for {camera}")
+
+
 def convert(
     raw_dir: str | Path,
     output_dir: str | Path | None = None,
@@ -251,9 +307,12 @@ def convert(
 ) -> dict[str, Any]:
     raw_dir = Path(raw_dir)
     manifest = read_json(raw_dir / "dataset_manifest.json")
-    report = validate_raw_dataset(raw_dir)
-    if not report["valid"]:
-        raise RuntimeError(f"raw validation failed: {raw_dir / 'validation_report.json'}")
+    if manifest.get("action_interface") == RELEE_POSE14_ACTION_INTERFACE:
+        _validate_commanded_pose14_raw(raw_dir)
+    else:
+        report = validate_raw_dataset(raw_dir)
+        if not report["valid"]:
+            raise RuntimeError(f"raw validation failed: {raw_dir / 'validation_report.json'}")
     dataset_name = manifest["dataset_name"]
     suffix = f"state26_relee_pose14_h{horizon}_obs{n_obs_steps}"
     output_dir = Path(output_dir) if output_dir else LEROBOT_ROOT / f"{dataset_name}_{suffix}"
@@ -295,7 +354,8 @@ def convert(
         "language_instruction": LANGUAGE_INSTRUCTION,
         "train_val_split": split,
         "stats_source": "anchored action chunk valid slots",
-        "action_source": "relative TCP pose from anchor pre_observation to future post_observation",
+        "raw_action_interface": manifest.get("action_interface"),
+        "action_source": "raw commanded pose14_delta_commanded when present; otherwise relative TCP pose from anchor pre_observation to future post_observation",
         "action_interface": RELEE_POSE14_ACTION_INTERFACE,
         "action_representation": RELEE_POSE14_ACTION_REPRESENTATION,
         "action_coordinate_frame": RELEE_POSE14_COORDINATE_FRAME,

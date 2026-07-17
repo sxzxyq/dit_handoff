@@ -14,6 +14,10 @@ export WANDB_CONFIG_DIR="${WANDB_CONFIG_DIR:-${CACHE_ROOT}/wandb_config}"
 export PIP_CACHE_DIR="${PIP_CACHE_DIR:-${CACHE_ROOT}/pip}"
 export CONDA_PKGS_DIRS="${CONDA_PKGS_DIRS:-${CACHE_ROOT}/conda_pkgs}"
 
-ISAACLAB_PYTHON="${DIT_ISAACLAB_PYTHON:-/home/qsh/miniconda3/envs/env_isaaclab/bin/python}"
-export PYTHONPATH="/home/qsh/dit/src:/home/qsh/IsaacLab/source:${PYTHONPATH:-}"
-"${ISAACLAB_PYTHON}" -m dit_handoff.eval.closed_loop_handoff_state26_relee_pose14 "$@"
+
+LEROBOT_ENV="${DIT_LEROBOT_ENV:-dit_lerobot_main}"
+LEROBOT_PYTHON="${DIT_LEROBOT_PYTHON:-/home/qsh/miniconda3/envs/${LEROBOT_ENV}/bin/python}"
+
+export PYTHONPATH="/home/qsh/dit/src:${PYTHONPATH:-}"
+exec "${LEROBOT_PYTHON}" -m dit_handoff.train.bar_handoff_state26_absjoint18_train "$@"
+
